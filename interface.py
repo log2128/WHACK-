@@ -99,10 +99,6 @@ async def simulate_call():
 
 @ui.page('/')
 def home():
-    # Import Google Font
-    ui.add_head_html(
-    '<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">'
-    )
 
     ui.add_head_html("""
     <style>
@@ -128,10 +124,32 @@ def home():
 """)
 
     # Page styling
+    ui.add_head_html("""
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            html,
+            body,
+            .q-body--standard,
+            .q-card,
+            .q-btn,
+            .q-field,
+            .q-page {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            }
+
+            .q-icon,
+            .material-icons,
+            .material-icons-outlined {
+                font-family: 'Material Icons' !important;
+            }
+        </style>
+        """)
+
     ui.query('body').style(
-        'background-color: #EAF2FA; '
-        'color: #172B4D; '
-        'font-family: "Plus Jakarta Sans", sans-serif;'
+    'background-color: #EAF2FA; '
+    'color: #172B4D; '
 )
     # Main dashboard container
     with ui.column().classes('w-full max-w-7xl mx-auto p-6 gap-6'):
@@ -365,12 +383,32 @@ add_assessment(test_assessment)
 
 @ui.page('/phone')
 def phone_page():
-    ui.query('body').style(
-        'background-color: #EAF2FA; '
-        'color: #172B4D; '
-        'font-family: "Plus Jakarta Sans", sans-serif;'
-)
+    ui.add_head_html("""
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            html,
+            body,
+            .q-body--standard,
+            .q-card,
+            .q-btn,
+            .q-field,
+            .q-page {
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            }
 
+            .q-icon,
+            .material-icons,
+            .material-icons-outlined {
+                font-family: 'Material Icons' !important;
+            }
+        </style>
+        """)
+    ui.query('body').style(
+    'background-color: #EAF2FA; '
+    'color: #172B4D; '
+    )
     with ui.column().classes('w-full max-w-md mx-auto p-6 gap-6'):
         ui.label('SCAM GUARDIAN').classes('text-2xl font-bold')
 
@@ -411,4 +449,6 @@ def phone_page():
 
     ui.timer(0.5, refresh_phone)
 
-ui.run(host='0.0.0.0', port=8080)
+
+if __name__ in {'__main__', '__mp_main__'}:
+    ui.run(host='0.0.0.0', port=8080)
