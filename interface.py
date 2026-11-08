@@ -120,8 +120,22 @@ def home():
             background-color: #16A37A;
             animation: listening-pulse 1.5s ease-in-out infinite;
         }
+
+        .dashboard-card {
+            background: rgba(255, 255, 255, 0.88);
+            border: 1px solid rgba(39, 140, 184, 0.16);
+            border-radius: 18px;
+            box-shadow: 0 4px 18px rgba(23, 43, 77, 0.07);
+            transition: all 0.25s ease;
+        }
+
+        .dashboard-card:hover {
+            box-shadow: 0 8px 26px rgba(23, 43, 77, 0.12);
+            transform: translateY(-2px);
+            border-color: rgba(39, 140, 184, 0.30);
+        }
     </style>
-""")
+    """)
 
     # Page styling
     ui.add_head_html("""
@@ -147,10 +161,13 @@ def home():
         </style>
         """)
 
-    ui.query('body').style(
-    'background-color: #EAF2FA; '
-    'color: #172B4D; '
-)
+    ui.query('body').style("""
+        background:
+            radial-gradient(circle at 5% 5%, rgba(39,140,184,0.20), transparent 45%),
+            radial-gradient(circle at 95% 95%, rgba(57,189,232,0.16), transparent 45%),
+            #EAF2FA;
+        color: #172B4D;
+    """)
     # Main dashboard container
     with ui.column().classes('w-full max-w-7xl mx-auto p-6 gap-6'):
 
@@ -198,20 +215,20 @@ def home():
         with ui.row().classes('w-full items-stretch gap-6 flex-nowrap'):
 
             # Live transcript
-            with ui.card().classes('flex-1 min-w-0 rounded-2xl p-2 shadow-sm'):
+            with ui.card().classes('dashboard-card p-5'):
                 ui.label('LIVE TRANSCRIPT').classes(
                     'text-lg font-bold'
                 )
 
                 transcript_display = ui.column().classes('w-full gap-2')
 
-            # Scam risk
-            with ui.card().classes('flex-1 min-w-0 rounded-2xl p-2 shadow-sm'):
+           # Scam risk
+            with ui.card().classes('dashboard-card flex-1 min-w-0 p-5'):
                 ui.label('SCAM RISK').classes(
-                    'text-lg font-bold'
+                    'text-lg font-bold tracking-wide'
                 ).style('color: #101D35;')
 
-                with ui.row().classes('w-full items-center gap-6'):
+                with ui.row().classes('w-full items-center gap-6 mt-4'):
 
                     # Circular risk gauge
                     risk_gauge = ui.circular_progress(
@@ -227,15 +244,22 @@ def home():
                             'text-5xl font-bold'
                         ).style('color: #16A37A;')
 
+                        risk_status = ui.label('LOW RISK').classes(
+                            'text-xs font-bold tracking-widest'
+                        ).style(
+                            'color: #16A37A; background: #E3F7EF; '
+                            'padding: 5px 10px; border-radius: 20px;'
+                        )
+
                         risk_message = ui.label(
                             'No significant risk detected'
-                        ).classes('text-gray-500')
+                        ).classes('text-sm').style('color: #64748B;')
 
         # Second row: Tactics and Advice
         with ui.row().classes('w-full items-stretch gap-6 flex-nowrap'):
 
             # Detected tactics
-            with ui.card().classes('flex-1 min-w-0 rounded-2xl p-2 shadow-sm'):
+            with ui.card().classes('dashboard-card p-5'):
                 ui.label('DETECTED TACTICS').classes(
                     'text-lg font-bold'
                 )
@@ -243,7 +267,7 @@ def home():
                 tactics_display = ui.column().classes('w-full gap-2')
 
             # Guardian advice
-            with ui.card().classes('flex-1 min-w-0 rounded-2xl p-2 shadow-sm'):
+            with ui.card().classes('dashboard-card flex-1 min-w-0 p-5'):
                 ui.label('GUARDIAN ADVICE').classes(
                     'text-lg font-bold'
                 )
@@ -253,7 +277,7 @@ def home():
                     ).classes('text-gray-500')
 
         # Trusted contact
-        with ui.card().classes('w-full rounded-2xl p-2 shadow-sm'):
+        with ui.card().classes('dashboard-card p-5'):
             ui.label('TRUSTED CONTACT').classes(
                 'text-lg font-bold'
             )
@@ -334,26 +358,45 @@ def home():
             risk_display.style('color: #E05252;')
             risk_gauge.props('color=negative')
 
+            risk_status.set_text('HIGH RISK')
+            risk_status.style(
+                'color: #DC3545; background: #FDE8E8; '
+                'padding: 5px 10px; border-radius: 20px;'
+            )
+
         elif risk >= 50:
             risk_message.set_text('Suspicious activity detected.')
             risk_display.style('color: #E9A23B;')
             risk_gauge.props('color=warning')
 
+            risk_status.set_text('MEDIUM RISK')
+            risk_status.style(
+                'color: #B7791F; background: #FFF4D6; '
+                'padding: 5px 10px; border-radius: 20px;'
+            )
+
         else:
             risk_message.set_text('No significant risk detected.')
             risk_display.style('color: #16A37A;')
             risk_gauge.props('color=positive')
-                # Update detected tactics
-        tactics_display.clear()
 
-        with tactics_display:
-            if state['tactics']:
-                for tactic in state['tactics']:
+            risk_status.set_text('LOW RISK')
+            risk_status.style(
+                'color: #16A37A; background: #E3F7EF; '
+                'padding: 5px 10px; border-radius: 20px;'
+            )
+
+    # Update detected tactics
+    tactics_display.clear()
+
+    with tactics_display:
+        if state['tactics']:
+            for tactic in state['tactics']:
                     ui.label(f'• {tactic}')
-            else:
-                ui.label(
-                    'No suspicious tactics detected yet.'
-                ).classes('text-gray-500')
+        else:
+            ui.label(
+                'No suspicious tactics detected yet.'
+            ).classes('text-gray-500')
 
         # Update Guardian advice
         advice_display.set_text(state['message'])
@@ -405,10 +448,13 @@ def phone_page():
             }
         </style>
         """)
-    ui.query('body').style(
-    'background-color: #EAF2FA; '
-    'color: #172B4D; '
-    )
+    ui.query('body').style("""
+        background:
+            radial-gradient(circle at 5% 5%, rgba(39,140,184,0.20), transparent 45%),
+            radial-gradient(circle at 95% 95%, rgba(57,189,232,0.16), transparent 45%),
+            #EAF2FA;
+        color: #172B4D;
+    """)
     with ui.column().classes('w-full max-w-md mx-auto p-6 gap-6'):
         ui.label('SCAM GUARDIAN').classes('text-2xl font-bold')
 
