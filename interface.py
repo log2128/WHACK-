@@ -27,7 +27,15 @@ state = {
     'message': 'Guardian is listening.',
     'alerted': False
 }
-
+on_reset = []  # List of functions to call when the call is reset
+def reset_call():
+    state['transcript'].clear()
+    state['risk'] = 0
+    state['tactics'] = []
+    state['message'] = 'Guardian is listening.'
+    state['alerted'] = False
+    for fn in on_reset:
+        fn()
 
 # Receive transcript chunks
 def add_transcript(chunk: TranscriptChunk):
@@ -191,6 +199,10 @@ def home():
                     'Simulate Scam Call',
                     on_click=simulate_call
                 ).props('color=primary')
+                ui.button(
+                    'Reset Call',
+                    on_click=reset_call
+                ).props('color=negative')
 
         ui.separator()
 
@@ -360,27 +372,6 @@ def home():
 
     # Refresh every half second
     ui.timer(0.5, refresh_dashboard)
-
-
-test_chunk = TranscriptChunk(...)
-   
-
-add_transcript(test_chunk)
-
-
-
-test_assessment = Assessment(
-    risk=85,
-    tactics=[
-        'Urgency',
-        'Request for financial information',
-        'Pressure to act immediately'
-    ],
-    message='High risk! Do not share your bank details. End the call and contact your bank using its official number.'
-)
-
-add_assessment(test_assessment)
-
 @ui.page('/phone')
 def phone_page():
     ui.add_head_html("""

@@ -13,10 +13,10 @@ from google.genai import types
 
 from models import Assessment, TranscriptChunk
 
-MODEL = os.getenv("GUARDIAN_MODEL", "gemini-2.5-flash-lite")
+MODEL = os.getenv("GUARDIAN_MODEL", "gemini-3.5-flash-lite")
 WINDOW_SECONDS = 60       # how much transcript the LLM sees
-SPEAK_RISK = 70           # risk needed to count as "confident" (tune later)
-COOLDOWN_SECONDS = 20     # minimum gap between spoken messages
+SPEAK_RISK = 60           # risk needed to count as "confident" (tune later)
+COOLDOWN_SECONDS = 8     # minimum gap between spoken messages
 TACTICS = [
     "safe_account", "hmrc", "hi_mum", "tech_support", "gift_cards",
     "remote_access", "secrecy", "urgency", "authority",
@@ -30,9 +30,20 @@ One weak tactic alone (for example urgency) is weak evidence. Several together,
 or any request for money, gift cards, bank details or remote access, is strong evidence.
 Ordinary calls (a GP appointment, a delivery, family chat) must score low.
 
+YOUR PERSONALITY (for the "message" only):
+You are Rosie, a warm, steady, quietly witty companion who sits beside the person
+like a trusted grandchild. You are on their side, never bossy, never scary.
+- Speak directly to them as "you". Plain everyday British English.
+- Name the trick in simple words, e.g. "A real bank never asks you to move money."
+- Always give ONE clear thing to do, e.g. "Let's hang up and call the number on your card."
+- Risk 60-79: gentle and curious, like a raised eyebrow.
+- Risk 80+: firm and clear, but still kind. Tell them to hang up.
+- Never blame or embarrass them. Scammers are professionals; anyone can be fooled.
+- Max 25 words. It will be spoken aloud: no emojis, lists or symbols.
+
 Reply with JSON only, no other text:
 {{"risk": <0-100>, "tactics": [<allowed ids>], "reason": "<one short sentence>",
- "message": "<what you would say to the person: calm, kind, one or two short sentences>"}}"""
+ "message": "<what Rosie says to the person>"}}"""
 
 
 class Brain:
@@ -42,6 +53,11 @@ class Brain:
         self.recent_confident: list[bool] = []
         self.last_spoke = 0.0
 
+    def reset(self):
+        """Forget current call and start a new one."""
+        self.window.clear()
+        self.recent_confident.clear()
+        self.last_spoke = 0.0
     def add_chunk(self, chunk: TranscriptChunk) -> None:
         """Keep only final chunks from the last WINDOW_SECONDS."""
         if not chunk.is_final:
@@ -88,7 +104,8 @@ class Brain:
         self.recent_confident = (self.recent_confident + [risk >= SPEAK_RISK])[-2:]
         confident_twice = len(self.recent_confident) == 2 and all(self.recent_confident)
         cooled_down = time.time() - self.last_spoke >= COOLDOWN_SECONDS
-        if confident_twice and cooled_down:
+        very_sure = risk >= 80
+        if (confident_twice or very_sure) and cooled_down:
             self.last_spoke = time.time()
             return True
         return False
