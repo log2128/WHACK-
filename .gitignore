@@ -426,3 +426,9 @@ FodyWeavers.xsd
 
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
+
+.venv/
+__pycache__/
+*.pyc
+.env
+trusted_contact.json
