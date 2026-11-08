@@ -112,6 +112,10 @@ def home():
                 transform: scale(0.75);
             }
         }
+        .overflow-y-auto {
+            scrollbar-width: thin;
+            scrollbar-color: #94A3B8 transparent;
+        }
 
         .listening-dot {
             width: 10px;
@@ -168,24 +172,22 @@ def home():
             #EAF2FA;
         color: #172B4D;
     """)
-    # Main dashboard container
-    with ui.column().classes('w-full max-w-7xl mx-auto p-6 gap-6'):
 
-        # Header
-        with ui.row().classes('w-full items-center justify-between'):
+    # Header
+    with ui.row().classes('w-full items-center justify-between'):
 
             # Logo and branding
-            with ui.row().classes('items-center gap-3'):
+            with ui.row().classes('items-center gap-4'):
                 with ui.element('div').classes(
-                        'w-14 h-14 rounded-2xl flex items-center justify-center'
-                    ).style('background-color: #192B49;'):
-                        ui.icon('security').classes(
-                            'text-4xl text-white'
-                        )
+                    'w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg'
+                ).style(
+                    'background: linear-gradient(135deg, #192B49, #278CB8);'
+                ):
+                    ui.icon('security').classes('text-4xl text-white')
 
-                with ui.column().classes('gap-0'):
+                with ui.column().classes('gap-1'):
                     ui.label('SCAM GUARDIAN').classes(
-                        'text-2xl font-bold'
+                        'text-2xl font-extrabold tracking-wide'
                     ).style('color: #101D35;')
 
                     ui.label('INTELLIGENT CALL PROTECTION').classes(
@@ -194,25 +196,32 @@ def home():
 
             # Status and simulator controls
             with ui.row().classes('items-center gap-4'):
+
                 with ui.row().classes(
                     'items-center gap-2 px-4 py-2 rounded-full'
-                ).style('background-color: #DDF4EB;'):
-
+                ).style(
+                    'background: rgba(221, 244, 235, 0.9); '
+                    'border: 1px solid rgba(19, 122, 91, 0.15);'
+                ):
                     ui.element('span').classes('listening-dot')
 
                     ui.label('LISTENING').classes(
-                        'font-bold text-sm'
+                        'font-bold text-xs tracking-wider'
                     ).style('color: #137A5B;')
 
                 ui.button(
                     'Simulate Scam Call',
                     on_click=simulate_call
-                ).props('color=primary')
+                ).props(
+                    'color=primary unelevated no-caps'
+                ).classes(
+                    'rounded-xl px-5 py-2 font-bold shadow-md'
+                )
 
-        ui.separator()
+    ui.separator().classes('opacity-50')
 
         # First row: Transcript and Risk
-        with ui.row().classes('w-full items-stretch gap-6 flex-nowrap'):
+    with ui.row().classes('w-full items-stretch gap-6 flex-nowrap'):
 
             # Live transcript
             with ui.card().classes('dashboard-card p-5'):
@@ -220,7 +229,11 @@ def home():
                     'text-lg font-bold'
                 )
 
-                transcript_display = ui.column().classes('w-full gap-2')
+                transcript_display = ui.column().classes(
+                        'w-full overflow-y-auto'
+                    ).style(
+                        'max-height: 300px; min-height: 300px;'
+                    )
 
            # Scam risk
             with ui.card().classes('dashboard-card flex-1 min-w-0 p-5'):
@@ -256,7 +269,7 @@ def home():
                         ).classes('text-sm').style('color: #64748B;')
 
         # Second row: Tactics and Advice
-        with ui.row().classes('w-full items-stretch gap-6 flex-nowrap'):
+    with ui.row().classes('w-full items-stretch gap-6 flex-nowrap'):
 
             # Detected tactics
             with ui.card().classes('dashboard-card p-5'):
@@ -277,7 +290,7 @@ def home():
                     ).classes('text-gray-500')
 
         # Trusted contact
-        with ui.card().classes('dashboard-card p-5'):
+    with ui.card().classes('dashboard-card p-5'):
             ui.label('TRUSTED CONTACT').classes(
                 'text-lg font-bold'
             )
@@ -429,25 +442,25 @@ def phone_page():
     ui.add_head_html("""
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
         <style>
-            html,
-            body,
-            .q-body--standard,
-            .q-card,
-            .q-btn,
-            .q-field,
-            .q-page {
-                font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            html, body, .q-body--standard, .q-card, .q-btn {
+                font-family: 'Inter', sans-serif;
             }
 
-            .q-icon,
-            .material-icons,
-            .material-icons-outlined {
+            .q-icon, .material-icons {
                 font-family: 'Material Icons' !important;
             }
+
+            .phone-card {
+                background: rgba(255,255,255,0.92);
+                border: 1px solid rgba(39,140,184,0.16);
+                border-radius: 22px;
+                box-shadow: 0 6px 24px rgba(23,43,77,0.08);
+            }
         </style>
-        """)
+    """)
+
     ui.query('body').style("""
         background:
             radial-gradient(circle at 5% 5%, rgba(39,140,184,0.20), transparent 45%),
@@ -455,26 +468,87 @@ def phone_page():
             #EAF2FA;
         color: #172B4D;
     """)
-    with ui.column().classes('w-full max-w-md mx-auto p-6 gap-6'):
-        ui.label('SCAM GUARDIAN').classes('text-2xl font-bold')
 
-        risk_display = ui.label().classes('text-4xl font-bold')
-        warning_display = ui.label().classes('text-xl font-bold')
-        details_display = ui.label().classes('text-lg')
+    with ui.column().classes('w-full max-w-md mx-auto p-5 gap-5'):
 
+        # Header
+        with ui.row().classes('w-full items-center justify-center gap-3'):
+            with ui.element('div').classes(
+                'w-12 h-12 rounded-xl flex items-center justify-center'
+            ).style('background: linear-gradient(135deg, #192B49, #278CB8);'):
+                ui.icon('security').classes('text-3xl text-white')
+
+            with ui.column().classes('gap-0'):
+                ui.label('SCAM GUARDIAN').classes(
+                    'text-xl font-extrabold'
+                ).style('color: #101D35;')
+
+                ui.label('CALL PROTECTION').classes(
+                    'text-xs font-bold tracking-widest'
+                ).style('color: #278CB8;')
+
+        # Risk card
+        with ui.card().classes('phone-card w-full p-6 gap-4'):
+            ui.label('CURRENT CALL STATUS').classes(
+                'text-xs font-bold tracking-widest'
+            ).style('color: #64748B;')
+
+            risk_display = ui.label('0% RISK').classes(
+                'text-5xl font-extrabold'
+            ).style('color: #16A37A;')
+
+            risk_status = ui.label('LOW RISK').classes(
+                'text-xs font-bold tracking-widest px-3 py-2 rounded-full'
+            ).style(
+                'color: #16A37A; background: #E3F7EF;'
+            )
+
+            warning_display = ui.label(
+                'No significant risk detected.'
+            ).classes('text-lg font-bold').style('color: #101D35;')
+
+            ui.separator()
+
+            ui.label('GUARDIAN ANALYSIS').classes(
+                'text-xs font-bold tracking-widest'
+            ).style('color: #64748B;')
+
+            details_display = ui.label(
+                'Guardian is monitoring the call.'
+            ).classes('text-sm').style('color: #475569;')
+
+        # Advice card
+        with ui.card().classes('phone-card w-full p-5 gap-2'):
+            with ui.row().classes('items-center gap-2'):
+                ui.icon('lightbulb').classes('text-xl').style(
+                    'color: #278CB8;'
+                )
+                ui.label('SAFETY ADVICE').classes(
+                    'text-sm font-bold tracking-wide'
+                ).style('color: #101D35;')
+
+            advice_display = ui.label(
+                'Never share passwords, verification codes or banking details over an unexpected call.'
+            ).classes('text-sm').style('color: #475569;')
+
+        # Action buttons
         ui.button(
             'End Call',
             on_click=lambda: ui.notify(
                 'Please end the call using your phone.'
             )
-        ).classes('w-full').props('color=negative size=xl')
+        ).classes('w-full rounded-xl py-3 font-bold').props(
+            'color=negative size=lg unelevated no-caps'
+        )
 
         ui.button(
             'Contact Trusted Person',
             on_click=lambda: ui.notify(
                 'Trusted contact feature coming soon.'
             )
-        ).classes('w-full').props('color=primary size=xl')
+        ).classes('w-full rounded-xl py-3 font-bold').props(
+            'color=primary size=lg outline no-caps'
+        )
 
     def refresh_phone():
         risk = state['risk']
@@ -482,14 +556,43 @@ def phone_page():
         risk_display.set_text(f'{risk}% RISK')
 
         if risk >= 80:
-            warning_display.set_text('High risk! This call may be a scam.')
-            risk_display.style('color: #B54708;')
+            warning_display.set_text(
+                'High risk! This call may be a scam.'
+            )
+            risk_display.style('color: #DC3545;')
+            risk_status.set_text('HIGH RISK')
+            risk_status.style(
+                'color: #DC3545; background: #FDE8E8;'
+            )
+            advice_display.set_text(
+                'Do not share personal or banking information. End the call using your phone and verify the caller independently.'
+            )
+
         elif risk >= 50:
-            warning_display.set_text('Suspicious activity detected.')
-            risk_display.style('color: #B54708;')
+            warning_display.set_text(
+                'Suspicious activity detected.'
+            )
+            risk_display.style('color: #B7791F;')
+            risk_status.set_text('MEDIUM RISK')
+            risk_status.style(
+                'color: #B7791F; background: #FFF4D6;'
+            )
+            advice_display.set_text(
+                'Be cautious. Do not share personal information or follow unexpected instructions.'
+            )
+
         else:
-            warning_display.set_text('No significant risk detected.')
-            risk_display.style('color: #0F5E63;')
+            warning_display.set_text(
+                'No significant risk detected.'
+            )
+            risk_display.style('color: #16A37A;')
+            risk_status.set_text('LOW RISK')
+            risk_status.style(
+                'color: #16A37A; background: #E3F7EF;'
+            )
+            advice_display.set_text(
+                'Stay alert. Never share passwords, verification codes or banking details over an unexpected call.'
+            )
 
         details_display.set_text(state['message'])
 
