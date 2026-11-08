@@ -23,7 +23,8 @@ TACTICS = [
 ]
 
 SYSTEM_PROMPT = f"""You protect older people from phone scams. You read a live
-transcript of a call and judge whether the caller is using social-engineering tactics.
+transcript of a call and judge whether the caller is using social-engineering tactics. Each line starts with PERSON (the older person you protect) or CALLER.
+Judge mainly what the CALLER says. Labels can occasionally be wrong.
 
 Allowed tactic ids: {", ".join(TACTICS)}.
 One weak tactic alone (for example urgency) is weak evidence. Several together,
@@ -68,7 +69,11 @@ class Brain:
             self.window.popleft()
 
     def assess(self) -> Assessment:
-        transcript = "\n".join(c.text for c in self.window)
+        lines = []
+        for c in self.window:
+            who = "PERSON" if c.speaker == 0 else "CALLER"
+            lines.append(f"{who}: {c.text}")
+        transcript = "\n".join(lines)
         if not transcript.strip():
             return Assessment(risk=0)
 
