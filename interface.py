@@ -3,6 +3,12 @@ from dataclasses import dataclass, field
 import asyncio
 from alerts import send_family_alert
 from datetime import datetime
+import json
+from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 # define class for transcript with attributes text and speaker
@@ -19,6 +25,29 @@ class Assessment:
     risk: int
     tactics: list[str] = field(default_factory=list)
     message: str = "Guardian is listening."
+
+CONTACT_FILE = Path(__file__).with_name('trusted_contact.json')
+
+
+def load_trusted_contact():
+    if CONTACT_FILE.exists():
+        with open(CONTACT_FILE, 'r') as file:
+            return json.load(file)
+
+    return {}
+
+
+def save_trusted_contact(name, relationship):
+    contact = {
+        'name': name,
+        'relationship': relationship
+    }
+
+    with open(CONTACT_FILE, 'w') as file:
+        json.dump(contact, file, indent=4)
+
+    return contact
+
 
 
 def add_timeline_event(event, description, event_type="info"):
@@ -157,6 +186,11 @@ def home():
             scrollbar-color: #94A3B8 transparent;
         }
 
+        .q-dialog__backdrop {
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        }  
+         
         .listening-dot {
             width: 10px;
             height: 10px;
@@ -325,18 +359,160 @@ def home():
             .style("max-height: 300px;")
         )
 
-        # Trusted contact
-    with ui.card().classes("dashboard-card p-5"):
-        ui.label("TRUSTED CONTACT").classes("text-lg font-bold")
+    
+    # Trusted contact
+    with ui.card().classes('dashboard-card w-full p-5'):
+        existing_contact = load_trusted_contact()
 
-        ui.label("No trusted contact configured yet.").classes("text-gray-500")
+        with ui.row().classes('w-full items-center justify-between'):
+            with ui.column().classes('gap-1'):
+                ui.label('TRUSTED CONTACT').classes(
+                    'text-lg font-bold'
+                ).style('color: #101D35;')
 
-        ui.label(
-            "Family alerts will be sent to your trusted contact "
-            "when a high-risk call is detected."
-        ).classes("text-gray-600")
+                if existing_contact:
+                    ui.label(
+                        f"{existing_contact['name']} · "
+                        f"{existing_contact['relationship']}"
+                    ).classes('text-sm').style('color: #64748B;')
+                else:
+                    ui.label(
+                        'No trusted contact configured yet.'
+                    ).classes('text-sm').style('color: #64748B;')
 
+            with ui.expansion(
+                '',
+                icon='add',
+                value=False
+            ).classes('w-auto'):
+                ui.label('CONTACT DETAILS').classes(
+                    'font-bold text-sm'
+                )
 
+                contact_name = ui.input(
+                    'Contact name',
+                    value=existing_contact.get('name', '')
+                ).classes('w-full')
+
+                relationship = ui.select(
+                    ['Self', 'Parent', 'Guardian', 'Friend', 'Other'],
+                    label='Relationship',
+                    value=existing_contact.get('relationship', 'Self')
+                ).classes('w-full')
+
+                contact_status = ui.label(
+                    'Enter your contact details.'
+                ).classes('text-sm text-gray-500')
+
+                def save_contact():
+                    name = contact_name.value.strip()
+
+                    if not name:
+                        ui.notify(
+                            'Please enter a contact name.',
+                            type='warning'
+                        )
+                        return
+
+                    save_trusted_contact(name, relationship.value)
+
+                    contact_status.set_text(
+                        f'{name} saved successfully!'
+                    )
+
+                    ui.notify(
+                        'Trusted contact saved!',
+                        type='positive'
+                    )
+
+                ui.button(
+                    'Save Contact',
+                    on_click=save_contact
+                ).props('color=primary unelevated no-caps').classes(
+                    'rounded-xl px-5 py-2 font-bold'
+                )
+            
+            
+        ntfy_topic = os.getenv('NTFY_TOPIC', '')        
+        # ntfy setup popup
+        with ui.dialog() as ntfy_dialog:
+            with ui.card().classes('w-96 p-6 rounded-2xl'):
+                with ui.row().classes('w-full items-center justify-between'):
+                    with ui.row().classes('items-center gap-2'):
+                        ui.icon('notifications_active').classes(
+                            'text-3xl text-blue-600'
+                        )
+                        ui.label('ntfy').classes(
+                            'text-2xl font-bold'
+                        )
+
+                    ui.button(
+                        icon='close',
+                        on_click=ntfy_dialog.close
+                    ).props('flat round dense')
+
+                ui.label(
+                    'Connect your trusted contact'
+                ).classes('text-xl font-bold mt-3')
+
+                ui.label(
+                    'Follow these steps to receive Scam Guardian alerts '
+                    'on another device.'
+                ).classes('text-sm text-gray-600')
+
+                ui.separator()
+
+                ui.label('HOW TO CONNECT').classes(
+                    'font-bold text-sm mt-2'
+                )
+
+                ui.label(
+                    '1. Download the ntfy app.'
+                ).classes('text-sm')
+
+                ui.label(
+                    '2. Open ntfy and subscribe to your topic.'
+                ).classes('text-sm')
+
+                ui.label(
+                    '3. Enable notifications on your device.'
+                ).classes('text-sm')
+
+                ui.button(
+                    'Download ntfy',
+                    on_click=lambda: ui.navigate.to(
+                        'https://ntfy.sh/'
+                    )
+                ).props('color=primary unelevated no-caps').classes(
+                    'w-full mt-3'
+                )
+                
+                ui.label('YOUR SUBSCRIPTION TOPIC').classes(
+                    'font-bold text-xs mt-3'
+                )
+
+                with ui.row().classes(
+                    'w-full items-center justify-between bg-gray-100 rounded-lg p-3'
+                ):
+                    ui.label(
+                        ntfy_topic or 'Topic not configured'
+                    ).classes('text-sm font-mono')
+
+                    ui.button(
+                        icon='content_copy',
+                        on_click=lambda: ui.clipboard.write(ntfy_topic)
+                    ).props('flat round dense')
+                    
+        # Popup trigger
+        ui.button(
+            'Connect ntfy',
+            icon='notifications_active',
+            on_click=ntfy_dialog.open
+        ).props('outline color=primary no-caps').classes(
+            'rounded-xl'
+        )
+      
+    
         rendered = {"timeline": -1}
         
     # Refresh dashboard with the latest transcript
