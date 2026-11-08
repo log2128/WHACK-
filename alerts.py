@@ -10,7 +10,7 @@ def send_family_alert(risk, message):
 
     if not topic:
         print('Family alert not sent: NTFY_TOPIC is missing.')
-        return
+        return False
 
     try:
         response = requests.post(
@@ -25,6 +25,8 @@ def send_family_alert(risk, message):
 
         response.raise_for_status()
         print('Family alert sent successfully.')
+        return True
 
     except requests.RequestException as error:
         print(f'Could not send family alert: {error}')
+        return False

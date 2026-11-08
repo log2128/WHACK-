@@ -24,10 +24,13 @@ async def _receiver(socket, out_q):
             continue
         text = msg.channel.alternatives[0].transcript
         if text:
+            words = msg.channel.alternatives[0].words or []
+            speaker = words[0].speaker if words else None
             chunk = TranscriptChunk(
                 text=text,
                 timestamp=time.time(),
-                is_final=bool(msg.is_final))
+                is_final=bool(msg.is_final),
+                speaker=speaker)
             await out_q.put(chunk)
 
 async def listen (out_q):
@@ -46,7 +49,8 @@ async def listen (out_q):
                 async with client.listen.v1.connect(
                     model=MODEL, encoding="linear16", sample_rate=SAMPLE_RATE,
                     channels=1, interim_results="true",
-                    smart_format="true", endpointing=300
+                    smart_format="true", endpointing=300,
+                    diarize = "true"
                 ) as socket:
                     print("[audio] connected to Deepgram")
                     sender = asyncio.create_task(_sender(socket, audio_q))

@@ -25,7 +25,8 @@ state = {
     'risk': 0,
     'tactics': [],
     'message': 'Guardian is listening.',
-    'alerted': False
+    'alerted': False,
+    'alert_count': 0
 }
 on_reset = []  # List of functions to call when the call is reset
 def reset_call():
@@ -51,7 +52,8 @@ def add_assessment(a: Assessment):
     state['message'] = a.message
 
     if a.risk >= 80 and previous_risk < 80 and not state['alerted']:
-        send_family_alert(a.risk, a.message)
+        if send_family_alert(a.risk, a.message):
+            state['alert_count'] += 1
         state['alerted'] = True
 
 async def simulate_call():
@@ -279,9 +281,20 @@ def home():
                 'when a high-risk call is detected.'
             ).classes('text-gray-600')
 
-    # Refresh dashboard with the latest transcript
+        # Refresh dashboard with the latest transcript
+    seen = {'alerts': state['alert_count']}
+
     def refresh_dashboard():
-        # Update transcript
+        # Show a pop-up if a new family alert was sent
+        if state['alert_count'] > seen['alerts']:
+            seen['alerts'] = state['alert_count']
+            ui.notify(
+                'Family alert sent to your trusted contact',
+                type='warning',
+                position='top',
+                timeout=6000
+            )
+
         # Update transcript
         transcript_display.clear()
 

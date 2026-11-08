@@ -5,6 +5,7 @@ class TranscriptChunk:
     text: str
     timestamp: float
     is_final: bool  # end of a sentence/utterance
+    speaker: int | None = None # 0 = first voice heard, 1 = second...
 
 
 @dataclass
